@@ -28,7 +28,7 @@ class ImagePopup(QDialog):
         layout.addWidget(image_label)
 
         # Thank you text label
-        thank_you_label = QLabel("For You, Professor", self)
+        thank_you_label = QLabel("For You, Professor Ignacio <3", self)
         thank_you_label.setAlignment(Qt.AlignCenter)  # Center the text
         layout.addWidget(thank_you_label)
 
