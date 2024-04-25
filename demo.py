@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+from PyQt5.QtGui import QPixmap, QPalette, QBrush
+from PyQt5.QtCore import Qt
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -12,9 +14,21 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
         self.setGeometry(100, 100, 800, 600)  # Adjusted for better layout
+        self.backgroundPixmap = QPixmap('background.jpg')
+
+        # Set the pixmap as the background of a QLabel
+        self.backgroundLabel = QLabel(self)
+        self.backgroundLabel.setPixmap(self.backgroundPixmap)
+        self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
+        self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self.central_widget)
+
+        # Set background opacity and other style elements
+        self.central_widget.setStyleSheet("background-color: rgba(0, 0, 0, 0.5);")  # Semi-transparent white background for the widget
+        self.central_widget.setLayout(layout)
 
         # Create input fields
         self.input_a0 = QLineEdit()
@@ -47,6 +61,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.canvas)
 
         self.central_widget.setLayout(layout)
+
+    def resizeEvent(self, event):
+          # Ensure the background resizes correctly
+          self.backgroundLabel.resize(self.size())
+          super(MainWindow, self).resizeEvent(event)
 
     def calculate_frequencies(self):
         # Read inputs
