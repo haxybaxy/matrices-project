@@ -1,5 +1,7 @@
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 
 class MainWindow(QMainWindow):
@@ -9,7 +11,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 500, 400)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout()
@@ -19,11 +21,11 @@ class MainWindow(QMainWindow):
         self.input_b0 = QLineEdit()
         self.input_c0 = QLineEdit()
         self.input_gen = QLineEdit()
-        layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype AA (%):"))
         layout.addWidget(self.input_a0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype Aa (%):"))
         layout.addWidget(self.input_b0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype aa:"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype aa (%):"))
         layout.addWidget(self.input_c0)
         layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
         layout.addWidget(self.input_gen)
@@ -40,9 +42,9 @@ class MainWindow(QMainWindow):
         self.calculate_btn.clicked.connect(self.calculate_frequencies)
         layout.addWidget(self.calculate_btn)
 
-        # Label to display results
-        self.results_label = QLabel("")
-        layout.addWidget(self.results_label)
+        # Canvas for Matplotlib
+        self.canvas = FigureCanvas(plt.figure())
+        layout.addWidget(self.canvas)
 
         self.central_widget.setLayout(layout)
 
@@ -52,6 +54,9 @@ class MainWindow(QMainWindow):
         b0 = float(self.input_b0.text())
         c0 = float(self.input_c0.text())
         gen = int(self.input_gen.text())
+
+        # Initial frequencies
+        initial_frequencies = [a0, b0, c0]
 
         # Setup the matrix
         a = np.zeros((3, 3))
@@ -86,11 +91,19 @@ class MainWindow(QMainWindow):
         # Calculate the final genotype frequencies
         x = np.array([[a0], [b0], [c0]])
         ans = np.dot(f, x)
+        final_frequencies = ans.flatten()
 
-        # Display results
-        self.results_label.setText(f"After {gen}th generation genotype distribution of AA: {ans[0, 0]:.2f}\n"
-                                   f"After {gen}th generation genotype distribution of Aa: {ans[1, 0]:.2f}\n"
-                                   f"After {gen}th generation genotype distribution of aa: {ans[2, 0]:.2f}")
+        # Plotting the pie charts
+        fig = self.canvas.figure
+        fig.clear()
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        labels = ['AA', 'Aa', 'aa']
+        ax1.pie(initial_frequencies, labels=labels, autopct='%1.1f%%')
+        ax1.set_title('Initial Distribution')
+        ax2.pie(final_frequencies, labels=labels, autopct='%1.1f%%')
+        ax2.set_title(f'Distribution After {gen} Generations')
+        self.canvas.draw()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
