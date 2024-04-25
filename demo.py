@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
-        self.setGeometry(100, 100, 600, 600)
+        self.setGeometry(100, 100, 800, 600)  # Adjusted for better layout
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout()
@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.calculate_btn)
 
         # Canvas for Matplotlib
-        self.canvas = FigureCanvas(plt.figure(figsize=(8, 12)))
+        self.canvas = FigureCanvas(plt.figure(figsize=(10, 8)))
         layout.addWidget(self.canvas)
 
         self.central_widget.setLayout(layout)
@@ -91,27 +91,35 @@ class MainWindow(QMainWindow):
             frequencies.append(x.flatten())
 
         # Plotting the pie charts and line graph
+                # Plotting the pie charts and line graph
         fig = self.canvas.figure
         fig.clear()
-        ax1 = fig.add_subplot(311)
-        ax2 = fig.add_subplot(312)
-        ax3 = fig.add_subplot(313)
+        # Place the pie charts in the first row, occupying a larger portion of the figure
+        ax1 = fig.add_subplot(221)  # First pie chart in the top left, but larger
+        ax2 = fig.add_subplot(222)  # Second pie chart in the top right, but larger
+        # Place the line graph in the second row, spanning the entire row
+        ax3 = fig.add_subplot(212)  # Line graph across the bottom, less height
+
         labels = ['AA', 'Aa', 'aa']
 
-        # Initial and final pie charts
+        # Initial pie chart
         ax1.pie(initial_frequencies, labels=labels, autopct='%1.1f%%')
         ax1.set_title('Initial Distribution')
+
+        # Final pie chart
         ax2.pie(frequencies[-1], labels=labels, autopct='%1.1f%%')
         ax2.set_title(f'Distribution After {gen} Generations')
 
         # Line graph for changes over generations
-        ax3.plot(frequencies)
+        ax3.plot(range(gen+1), frequencies)  # Include generation count in x-axis
         ax3.legend(labels)
         ax3.set_title('Changes in Genotype Distribution Over Generations')
         ax3.set_xlabel('Generation')
         ax3.set_ylabel('Frequency')
 
+        fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap, increase pad for clearer separation
         self.canvas.draw()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
