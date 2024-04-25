@@ -22,6 +22,15 @@ class MainWindow(QMainWindow):
         self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
         self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
 
+        flowerPixmap = QPixmap('flower.png')
+        # Set the pixmap as the foreground (flower) on another QLabel
+        flowerLabel = QLabel(self)
+        flowerLabel.setPixmap(flowerPixmap)
+        flowerLabel.setScaledContents(True)
+        # Position and size the flower image
+        flowerLabel.setGeometry(200, 150, 400, 300)  # Adjust the geometry as needed
+
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout(self.central_widget)
