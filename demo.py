@@ -2,14 +2,41 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
-from PyQt5.QtGui import QPixmap, QPalette, QBrush
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDialog
+from PyQt5.QtGui import QPixmap, QPalette, QBrush, QKeyEvent
 from PyQt5.QtCore import Qt
+
+
+class ImagePopup(QDialog):
+    def __init__(self, parent=None):
+        super(ImagePopup, self).__init__(parent)
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Flower Image')
+        self.setGeometry(300, 300, 300, 300)  # Adjust size as needed
+        self.setModal(True)  # Make the dialog modal
+
+        layout = QVBoxLayout(self)
+
+        # Load and display the image
+        pixmap = QPixmap('surprise.png')
+        image_label = QLabel(self)
+        image_label.setPixmap(pixmap)
+        image_label.setScaledContents(True)
+        image_label.resize(300, 300)  # Adjust size to fit the dialog
+        layout.addWidget(image_label)
+
+        # Thank you text label
+        thank_you_label = QLabel("For You, Professor", self)
+        thank_you_label.setAlignment(Qt.AlignCenter)  # Center the text
+        layout.addWidget(thank_you_label)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
+
 
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
@@ -21,15 +48,6 @@ class MainWindow(QMainWindow):
         self.backgroundLabel.setPixmap(self.backgroundPixmap)
         self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
         self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
-
-        flowerPixmap = QPixmap('flower.png')
-        # Set the pixmap as the foreground (flower) on another QLabel
-        flowerLabel = QLabel(self)
-        flowerLabel.setPixmap(flowerPixmap)
-        flowerLabel.setScaledContents(True)
-        # Position and size the flower image
-        flowerLabel.setGeometry(200, 150, 400, 300)  # Adjust the geometry as needed
-
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -75,6 +93,15 @@ class MainWindow(QMainWindow):
           # Ensure the background resizes correctly
           self.backgroundLabel.resize(self.size())
           super(MainWindow, self).resizeEvent(event)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_F1:  # You can change the key as needed
+            self.showImagePopup()
+
+    def showImagePopup(self):
+        # Create and show the popup dialog with the image
+        popup = ImagePopup(self)
+        popup.exec_()  # Show the dialog window
 
     def calculate_frequencies(self):
         # Read inputs
