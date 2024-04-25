@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
-        self.setGeometry(100, 100, 500, 400)
+        self.setGeometry(100, 100, 600, 600)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout()
@@ -21,11 +21,11 @@ class MainWindow(QMainWindow):
         self.input_b0 = QLineEdit()
         self.input_c0 = QLineEdit()
         self.input_gen = QLineEdit()
-        layout.addWidget(QLabel("Enter initial frequency of genotype AA (%):"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
         layout.addWidget(self.input_a0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype Aa (%):"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
         layout.addWidget(self.input_b0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype aa (%):"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype aa:"))
         layout.addWidget(self.input_c0)
         layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
         layout.addWidget(self.input_gen)
@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.calculate_btn)
 
         # Canvas for Matplotlib
-        self.canvas = FigureCanvas(plt.figure())
+        self.canvas = FigureCanvas(plt.figure(figsize=(8, 12)))
         layout.addWidget(self.canvas)
 
         self.central_widget.setLayout(layout)
@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         gen = int(self.input_gen.text())
 
         # Initial frequencies
-        initial_frequencies = [a0, b0, c0]
+        initial_frequencies = np.array([a0, b0, c0])
 
         # Setup the matrix
         a = np.zeros((3, 3))
@@ -79,30 +79,38 @@ class MainWindow(QMainWindow):
         eig_values = np.linalg.eigvals(a)
         P = np.linalg.eig(a)[1]
         D = np.diag(eig_values)
-
-        # Power of D to the generation
-        N = np.linalg.matrix_power(D, gen)
-
-        # Calculate the final matrix
         P_inv = np.linalg.inv(P)
-        f = np.dot(N, P_inv)
-        f = np.dot(P, f)
 
-        # Calculate the final genotype frequencies
-        x = np.array([[a0], [b0], [c0]])
-        ans = np.dot(f, x)
-        final_frequencies = ans.flatten()
+        # Track changes in frequencies
+        frequencies = [initial_frequencies]
+        x = initial_frequencies[:, np.newaxis]
+        for i in range(gen):
+            N = np.linalg.matrix_power(D, i + 1)
+            f = np.dot(P, np.dot(N, P_inv))
+            x = np.dot(f, x)
+            frequencies.append(x.flatten())
 
-        # Plotting the pie charts
+        # Plotting the pie charts and line graph
         fig = self.canvas.figure
         fig.clear()
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
+        ax1 = fig.add_subplot(311)
+        ax2 = fig.add_subplot(312)
+        ax3 = fig.add_subplot(313)
         labels = ['AA', 'Aa', 'aa']
+
+        # Initial and final pie charts
         ax1.pie(initial_frequencies, labels=labels, autopct='%1.1f%%')
         ax1.set_title('Initial Distribution')
-        ax2.pie(final_frequencies, labels=labels, autopct='%1.1f%%')
+        ax2.pie(frequencies[-1], labels=labels, autopct='%1.1f%%')
         ax2.set_title(f'Distribution After {gen} Generations')
+
+        # Line graph for changes over generations
+        ax3.plot(frequencies)
+        ax3.legend(labels)
+        ax3.set_title('Changes in Genotype Distribution Over Generations')
+        ax3.set_xlabel('Generation')
+        ax3.set_ylabel('Frequency')
+
         self.canvas.draw()
 
 if __name__ == '__main__':
