@@ -203,9 +203,10 @@ class MainWindow(QMainWindow):
         ax6.set_ylim(-1, 1)
         ax6.set_aspect('equal', adjustable='box')
         ax6.grid(True)
-        ax6.set_title('Eigenvectors as Vectors')
+        ax6.set_title('Eigenvectors')
 
-        fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap
+        fig.tight_layout(pad=0.2)  # Adjust layout to prevent overlap
+        fig.subplots_adjust(top=0.75,hspace=0.5)
         self.canvas.draw()
 
 
