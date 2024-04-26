@@ -5,6 +5,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDialog, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QPalette, QBrush, QKeyEvent
 from PyQt5.QtCore import Qt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class ImagePopup(QDialog):
@@ -162,7 +163,7 @@ class MainWindow(QMainWindow):
         ax3 = fig.add_subplot(333)  # Line graph
         ax4 = fig.add_subplot(334)  # Transition matrix
         ax5 = fig.add_subplot(335)  # Eigenvalues
-        ax6 = fig.add_subplot(336)  # Eigenvectors (vector plot)
+        ax6 = fig.add_subplot(336,projection = '3d')  # Eigenvectors (vector plot)
 
         labels = ['AA', 'Aa', 'aa']
 
@@ -196,14 +197,16 @@ class MainWindow(QMainWindow):
 
         # Eigenvector vector plot
         # Eigenvector vector plot
-        origin = [0, 0]  # All vectors will start from origin
+         # Change subplot index as needed
+        origin = [0, 0, 0]  # Origin point for the vectors
+    # Plot each eigenvector
         for i in range(len(P)):
-            ax6.quiver(*origin, P[0, i].real, P[1, i].real, scale=1, scale_units='xy', angles='xy')
-        ax6.set_xlim(-1, 1)
-        ax6.set_ylim(-1, 1)
-        ax6.set_aspect('equal', adjustable='box')
-        ax6.grid(True)
-        ax6.set_title('Eigenvectors')
+            # Eigenvectors are columns in P, so we plot each column as a vector
+            ax6.quiver(*origin, P[0, i].real, P[1, i].real, P[2, i].real, color='b', arrow_length_ratio=0.1)
+        ax6.set_xlim([-1, 1])
+        ax6.set_ylim([-1, 1])
+        ax6.set_zlim([-1, 1])
+        ax6.set_title('Eigenvectors in 3D')
 
         fig.tight_layout(pad=0.2)  # Adjust layout to prevent overlap
         fig.subplots_adjust(top=0.75,hspace=0.5)
