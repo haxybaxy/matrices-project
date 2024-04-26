@@ -41,9 +41,19 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
         self.setGeometry(100, 100, 1200, 600)  # Adjusted size to better fit new layout
+        self.backgroundPixmap = QPixmap('background.jpg')
+
+        # Set the pixmap as the background of a QLabel
+        self.backgroundLabel = QLabel(self)
+        self.backgroundLabel.setPixmap(self.backgroundPixmap)
+        self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
+        self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
+
+
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+        self.central_widget.setStyleSheet("background-color: rgba(0, 0, 0, 0.5);")  # Semi-transparent white background for the widget
 
         main_layout = QHBoxLayout(self.central_widget)  # Main layout now horizontal
 
@@ -90,10 +100,10 @@ class MainWindow(QMainWindow):
         # Add graph layout to the main layout
         main_layout.addLayout(graph_layout)
 
-    # def resizeEvent(self, event):
-    #       # Ensure the background resizes correctly
-    #       self.backgroundLabel.resize(self.size())
-    #       super(MainWindow, self).resizeEvent(event)
+    def resizeEvent(self, event):
+          # Ensure the background resizes correctly
+          self.backgroundLabel.resize(self.size())
+          super(MainWindow, self).resizeEvent(event)
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key_F1:  # You can change the key as needed
@@ -183,14 +193,15 @@ class MainWindow(QMainWindow):
         ax5.grid(True)
 
         # Eigenvector vector plot
+        # Eigenvector vector plot
         origin = [0, 0]  # All vectors will start from origin
         for i in range(len(P)):
-            ax6.quiver(*origin, P[0, i], P[1, i], scale=1, scale_units='xy', angles='xy')
+            ax6.quiver(*origin, P[0, i].real, P[1, i].real, scale=1, scale_units='xy', angles='xy')
         ax6.set_xlim(-1, 1)
         ax6.set_ylim(-1, 1)
         ax6.set_aspect('equal', adjustable='box')
         ax6.grid(True)
-        ax6.set_title('Eigenvectors')
+        ax6.set_title('Eigenvectors as Vectors')
 
         fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap
         self.canvas.draw()
