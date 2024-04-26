@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
         self.input_gen = QLineEdit('10')
         form_layout.addWidget(self.input_gen)
 
+
         # Dropdown for genotype pair choices
         self.combos = [QComboBox() for _ in range(3)]
         options = ["1. AA,AA", "2. Aa,Aa", "3. aa,aa", "4. Aa,AA", "5. Aa,aa", "6. AA,aa"]
