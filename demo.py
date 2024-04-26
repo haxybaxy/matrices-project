@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDialog, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QPalette, QBrush, QKeyEvent
 from PyQt5.QtCore import Qt
 
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Genotype Frequency Calculator')
-        self.setGeometry(100, 100, 800, 600)  # Adjusted for better layout
+        self.setGeometry(100, 100, 1200, 600)  # Adjusted size to better fit new layout
         self.backgroundPixmap = QPixmap('background.jpg')
 
         # Set the pixmap as the background of a QLabel
@@ -49,28 +49,33 @@ class MainWindow(QMainWindow):
         self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
         self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
 
+
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        layout = QVBoxLayout(self.central_widget)
-
-        # Set background opacity and other style elements
         self.central_widget.setStyleSheet("background-color: rgba(0, 0, 0, 0.5);")  # Semi-transparent white background for the widget
-        self.central_widget.setLayout(layout)
 
-        # Create input fields
+        main_layout = QHBoxLayout(self.central_widget)  # Main layout now horizontal
+
+        # Create form layout for input controls
+        form_layout = QVBoxLayout()
+
+        # Input fields and labels
+        form_layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
         self.input_a0 = QLineEdit('0.5')
-        self.input_b0 = QLineEdit('0.3')
-        self.input_c0 = QLineEdit('0.2')
-        self.input_gen = QLineEdit('10')
-        layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
-        layout.addWidget(self.input_a0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
-        layout.addWidget(self.input_b0)
-        layout.addWidget(QLabel("Enter initial frequency of genotype aa:"))
-        layout.addWidget(self.input_c0)
-        layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
-        layout.addWidget(self.input_gen)
+        form_layout.addWidget(self.input_a0)
 
+        form_layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
+        self.input_b0 = QLineEdit('0.3')
+        form_layout.addWidget(self.input_b0)
+
+        form_layout.addWidget(QLabel("Enter initial frequency of genotype aa:"))
+        self.input_c0 = QLineEdit('0.2')
+        form_layout.addWidget(self.input_c0)
+
+        form_layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
+        self.input_gen = QLineEdit('10')
+        form_layout.addWidget(self.input_gen)
 
 
         # Dropdown for genotype pair choices
@@ -78,18 +83,23 @@ class MainWindow(QMainWindow):
         options = ["1. AA,AA", "2. Aa,Aa", "3. aa,aa", "4. Aa,AA", "5. Aa,aa", "6. AA,aa"]
         for combo in self.combos:
             combo.addItems(options)
-            layout.addWidget(combo)
+            form_layout.addWidget(combo)
 
         # Button to calculate
         self.calculate_btn = QPushButton('Calculate Frequencies')
         self.calculate_btn.clicked.connect(self.calculate_frequencies)
-        layout.addWidget(self.calculate_btn)
+        form_layout.addWidget(self.calculate_btn)
 
-        # Canvas for Matplotlib
+        # Add form layout to the main layout
+        main_layout.addLayout(form_layout)
+
+        # Create graph layout for matplotlib canvas
+        graph_layout = QVBoxLayout()
         self.canvas = FigureCanvas(plt.figure(figsize=(10, 8)))
-        layout.addWidget(self.canvas)
+        graph_layout.addWidget(self.canvas)
 
-        self.central_widget.setLayout(layout)
+        # Add graph layout to the main layout
+        main_layout.addLayout(graph_layout)
 
     def resizeEvent(self, event):
           # Ensure the background resizes correctly
@@ -104,6 +114,7 @@ class MainWindow(QMainWindow):
         # Create and show the popup dialog with the image
         popup = ImagePopup(self)
         popup.exec_()  # Show the dialog window
+
 
     def calculate_frequencies(self):
         # Read inputs
@@ -133,29 +144,25 @@ class MainWindow(QMainWindow):
                 a[:, i] = [0, 0.5, 0.5]
 
         # Eigenvalues and eigenvectors
-        eig_values = np.linalg.eigvals(a)
-        P = np.linalg.eig(a)[1]
-        D = np.diag(eig_values)
+        eig_values, P = np.linalg.eig(a)
         P_inv = np.linalg.inv(P)
 
         # Track changes in frequencies
         frequencies = [initial_frequencies]
         x = initial_frequencies[:, np.newaxis]
         for i in range(gen):
-            N = np.linalg.matrix_power(D, i + 1)
-            f = np.dot(P, np.dot(N, P_inv))
-            x = np.dot(f, x)
+            x = np.dot(a, x)
             frequencies.append(x.flatten())
 
-        # Plotting the pie charts and line graph
-                # Plotting the pie charts and line graph
+        # Plotting the pie charts, line graph, and vector plots
         fig = self.canvas.figure
         fig.clear()
-        # Place the pie charts in the first row, occupying a larger portion of the figure
-        ax1 = fig.add_subplot(221)  # First pie chart in the top left, but larger
-        ax2 = fig.add_subplot(222)  # Second pie chart in the top right, but larger
-        # Place the line graph in the second row, spanning the entire row
-        ax3 = fig.add_subplot(212)  # Line graph across the bottom, less height
+        ax1 = fig.add_subplot(331)  # First pie chart in the top left
+        ax2 = fig.add_subplot(332)  # Second pie chart in the top center
+        ax3 = fig.add_subplot(333)  # Line graph
+        ax4 = fig.add_subplot(334)  # Transition matrix
+        ax5 = fig.add_subplot(335)  # Eigenvalues
+        ax6 = fig.add_subplot(336)  # Eigenvectors (vector plot)
 
         labels = ['AA', 'Aa', 'aa']
 
@@ -168,14 +175,38 @@ class MainWindow(QMainWindow):
         ax2.set_title(f'Distribution After {gen} Generations')
 
         # Line graph for changes over generations
-        ax3.plot(range(gen+1), frequencies)  # Include generation count in x-axis
+        ax3.plot(range(gen+1), frequencies)
         ax3.legend(labels)
-        ax3.set_title('Changes in Genotype Distribution Over Generations')
-        ax3.set_xlabel('Generation')
-        ax3.set_ylabel('Frequency')
+        ax3.set_title('Changes Over Generations')
 
-        fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap, increase pad for clearer separation
+        # Transition matrix
+        cax = ax4.imshow(a, cmap='viridis', interpolation='nearest')
+    # Annotate each cell with the numeric value
+        for i in range(a.shape[0]):
+            for j in range(a.shape[1]):
+                ax4.text(j, i, f'{a[i, j]:.2f}', ha='center', va='center', color='white')
+        ax4.set_title('Transition Matrix')
+
+
+        # Eigenvalues
+        ax5.plot(eig_values.real, eig_values.imag, 'ro')
+        ax5.set_title('Eigenvalues')
+        ax5.grid(True)
+
+        # Eigenvector vector plot
+        # Eigenvector vector plot
+        origin = [0, 0]  # All vectors will start from origin
+        for i in range(len(P)):
+            ax6.quiver(*origin, P[0, i].real, P[1, i].real, scale=1, scale_units='xy', angles='xy')
+        ax6.set_xlim(-1, 1)
+        ax6.set_ylim(-1, 1)
+        ax6.set_aspect('equal', adjustable='box')
+        ax6.grid(True)
+        ax6.set_title('Eigenvectors as Vectors')
+
+        fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap
         self.canvas.draw()
+
 
 
 if __name__ == '__main__':
