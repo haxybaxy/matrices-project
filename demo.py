@@ -192,6 +192,16 @@ class MainWindow(QMainWindow):
 
         # Eigenvalues
         ax5.plot(eig_values.real, eig_values.imag, 'ro')
+        for idx, eig in enumerate(eig_values):
+            dominant_index = np.argmax(np.abs(P[:, idx]))  # Find index of max magnitude in each eigenvector column
+            genotype_label = labels[dominant_index]  # Match to genotype
+            # Annotate eigenvalue with index, value, and dominant genotype with smaller font size
+            ax5.annotate(f'{idx+1}: {eig:.2f}\n({genotype_label})',
+                        (eig.real, eig.imag),
+                        textcoords="offset points",
+                        xytext=(5, 10),
+                        ha='center',
+                        fontsize=8)  # Smaller font size
         ax5.set_title('Eigenvalues')
         ax5.grid(True)
 
