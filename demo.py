@@ -1,105 +1,202 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from numpy.linalg import eig
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QDialog
+from PyQt5.QtGui import QPixmap, QPalette, QBrush, QKeyEvent
+from PyQt5.QtCore import Qt
+
+
+class ImagePopup(QDialog):
+    def __init__(self, parent=None):
+        super(ImagePopup, self).__init__(parent)
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Flower Image')
+        self.setGeometry(300, 300, 300, 300)  # Adjust size as needed
+        self.setModal(True)  # Make the dialog modal
+
+        layout = QVBoxLayout(self)
+
+        # Load and display the image
+        pixmap = QPixmap('surprise.png')
+        image_label = QLabel(self)
+        image_label.setPixmap(pixmap)
+        image_label.setScaledContents(True)
+        image_label.resize(300, 300)  # Adjust size to fit the dialog
+        layout.addWidget(image_label)
+
+        # Thank you text label
+        thank_you_label = QLabel("For You, Professor Ignacio <3", self)
+        thank_you_label.setAlignment(Qt.AlignCenter)  # Center the text
+        layout.addWidget(thank_you_label)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
 
+
     def initUI(self):
-        self.setWindowTitle('Genetic Matrix Operations Visualizer')
-        self.setGeometry(100, 100, 800, 600)
-        self.central_widget = QWidget(self)
+        self.setWindowTitle('Genotype Frequency Calculator')
+        self.setGeometry(100, 100, 800, 600)  # Adjusted for better layout
+        self.backgroundPixmap = QPixmap('background.jpg')
+
+        # Set the pixmap as the background of a QLabel
+        self.backgroundLabel = QLabel(self)
+        self.backgroundLabel.setPixmap(self.backgroundPixmap)
+        self.backgroundLabel.setScaledContents(True)  # Scale the image to fill the widget
+        self.backgroundLabel.resize(self.size())  # Resize the label to fill the window
+
+        self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout(self.central_widget)
 
+        # Set background opacity and other style elements
+        self.central_widget.setStyleSheet("background-color: rgba(0, 0, 0, 0.5);")  # Semi-transparent white background for the widget
+        self.central_widget.setLayout(layout)
+
+        # Create input fields
         self.input_a0 = QLineEdit('0.5')
         self.input_b0 = QLineEdit('0.3')
         self.input_c0 = QLineEdit('0.2')
         self.input_gen = QLineEdit('10')
-        layout.addWidget(QLabel("Enter initial frequencies of AA, Aa, aa:"))
+        layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
         layout.addWidget(self.input_a0)
+        layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
         layout.addWidget(self.input_b0)
+        layout.addWidget(QLabel("Enter initial frequency of genotype aa:"))
         layout.addWidget(self.input_c0)
-        layout.addWidget(QLabel("Enter number of generations:"))
+        layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
         layout.addWidget(self.input_gen)
 
+
+
+        # Dropdown for genotype pair choices
         self.combos = [QComboBox() for _ in range(3)]
-        options = ["AA,AA", "Aa,Aa", "aa,aa", "Aa,AA", "Aa,aa", "AA,aa"]
-        for i, combo in enumerate(self.combos):
+        options = ["1. AA,AA", "2. Aa,Aa", "3. aa,aa", "4. Aa,AA", "5. Aa,aa", "6. AA,aa"]
+        for combo in self.combos:
             combo.addItems(options)
             layout.addWidget(combo)
 
-        self.btn_calculate = QPushButton('Calculate Frequencies')
-        self.btn_calculate.clicked.connect(self.calculate_frequencies)
-        layout.addWidget(self.btn_calculate)
+        # Button to calculate
+        self.calculate_btn = QPushButton('Calculate Frequencies')
+        self.calculate_btn.clicked.connect(self.calculate_frequencies)
+        layout.addWidget(self.calculate_btn)
 
+        # Canvas for Matplotlib
         self.canvas = FigureCanvas(plt.figure(figsize=(10, 8)))
         layout.addWidget(self.canvas)
 
+        self.central_widget.setLayout(layout)
+
+    def resizeEvent(self, event):
+          # Ensure the background resizes correctly
+          self.backgroundLabel.resize(self.size())
+          super(MainWindow, self).resizeEvent(event)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_F1:  # You can change the key as needed
+            self.showImagePopup()
+
+    def showImagePopup(self):
+        # Create and show the popup dialog with the image
+        popup = ImagePopup(self)
+        popup.exec_()  # Show the dialog window
+
+
     def calculate_frequencies(self):
+        # Read inputs
         a0 = float(self.input_a0.text())
         b0 = float(self.input_b0.text())
         c0 = float(self.input_c0.text())
         gen = int(self.input_gen.text())
+
+        # Initial frequencies
         initial_frequencies = np.array([a0, b0, c0])
 
+        # Setup the matrix
         a = np.zeros((3, 3))
-        transition_map = {0: [1, 0, 0], 1: [0.25, 0.5, 0.25], 2: [0, 0, 1], 3: [0.5, 0.5, 0], 4: [0, 1, 0], 5: [0, 0.5, 0.5]}
         for i, combo in enumerate(self.combos):
-            a[:, i] = transition_map[combo.currentIndex()]
+            x = int(combo.currentText()[0])
+            if x == 1:
+                a[:, i] = [1, 0, 0]
+            elif x == 2:
+                a[:, i] = [0.25, 0.5, 0.25]
+            elif x == 3:
+                a[:, i] = [0, 0, 1]
+            elif x == 4:
+                a[:, i] = [0.5, 0.5, 0]
+            elif x == 5:
+                a[:, i] = [0, 1, 0]
+            elif x == 6:
+                a[:, i] = [0, 0.5, 0.5]
 
-        values, vectors = eig(a)
-        D = np.diag(values)
-        P = vectors
+        # Eigenvalues and eigenvectors
+        eig_values, P = np.linalg.eig(a)
         P_inv = np.linalg.inv(P)
 
+        # Track changes in frequencies
         frequencies = [initial_frequencies]
         x = initial_frequencies[:, np.newaxis]
-        for i in range(1, gen + 1):
-            x = np.dot(np.linalg.matrix_power(a, i), x)
+        for i in range(gen):
+            x = np.dot(a, x)
             frequencies.append(x.flatten())
 
-        self.visualize_data(a, values, vectors, frequencies)
-
-    def visualize_data(self, a, values, vectors, frequencies):
+        # Plotting the pie charts, line graph, and vector plots
         fig = self.canvas.figure
-        fig.clf()
+        fig.clear()
+        ax1 = fig.add_subplot(331)  # First pie chart in the top left
+        ax2 = fig.add_subplot(332)  # Second pie chart in the top center
+        ax3 = fig.add_subplot(336)  # Line graph
+        ax4 = fig.add_subplot(333)  # Transition matrix
+        ax5 = fig.add_subplot(334)  # Eigenvalues
+        ax6 = fig.add_subplot(335)  # Eigenvectors (vector plot)
 
-        # Transition Matrix with Annotations (No Colorbar)
-        ax1 = fig.add_subplot(221)
-        im = ax1.matshow(a, cmap='viridis')
+        labels = ['AA', 'Aa', 'aa']
+
+        # Initial pie chart
+        ax1.pie(initial_frequencies, labels=labels, autopct='%1.1f%%')
+        ax1.set_title('Initial Distribution')
+
+        # Final pie chart
+        ax2.pie(frequencies[-1], labels=labels, autopct='%1.1f%%')
+        ax2.set_title(f'Distribution After {gen} Generations')
+
+        # Line graph for changes over generations
+        ax3.plot(range(gen+1), frequencies)
+        ax3.legend(labels)
+        ax3.set_title('Changes Over Generations')
+
+        # Transition matrix
+        cax = ax4.imshow(a, cmap='viridis', interpolation='nearest')
+    # Annotate each cell with the numeric value
         for i in range(a.shape[0]):
             for j in range(a.shape[1]):
-                ax1.text(j, i, f'{a[i, j]:.2f}', ha='center', va='center', color='black', fontsize=8)
-        ax1.set_title('Transition Matrix A')
-        ax1.set_xlabel('To State')
-        ax1.set_ylabel('From State')
+                ax4.text(j, i, f'{a[i, j]:.2f}', ha='center', va='center', color='white')
+        ax4.set_title('Transition Matrix')
 
-        ax2 = fig.add_subplot(222)
-        ax2.plot(values.real, 'ro', label='Eigenvalues')
-        ax2.set_title('Eigenvalues')
-        ax2.legend()
 
-        ax3 = fig.add_subplot(223)
-        ax3.plot(frequencies)
-        ax3.set_title('Genotype Frequencies Over Generations')
-        ax3.set_xlabel('Generation')
-        ax3.set_ylabel('Frequency')
-        ax3.legend(['AA', 'Aa', 'aa'])
+        # Eigenvalues
+        ax5.plot(eig_values.real, eig_values.imag, 'ro')
+        ax5.set_title('Eigenvalues')
+        ax5.grid(True)
 
-        ax4 = fig.add_subplot(224)
-        ax4.quiver(np.zeros(len(vectors)), np.zeros(len(vectors)), vectors[0, :], vectors[1, :], angles='xy', scale_units='xy', scale=1)
-        ax4.set_xlim(-1, 1)
-        ax4.set_ylim(-1, 1)
-        ax4.set_title('Eigenvectors')
+        # Eigenvector vector plot
+        origin = [0, 0]  # All vectors will start from origin
+        for i in range(len(P)):
+            ax6.quiver(*origin, P[0, i], P[1, i], scale=1, scale_units='xy', angles='xy')
+        ax6.set_xlim(-1, 1)
+        ax6.set_ylim(-1, 1)
+        ax6.set_aspect('equal', adjustable='box')
+        ax6.grid(True)
+        ax6.set_title('Eigenvectors')
 
-        fig.tight_layout()
+        fig.tight_layout(pad=0.1)  # Adjust layout to prevent overlap
         self.canvas.draw()
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
