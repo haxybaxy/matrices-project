@@ -206,6 +206,9 @@ class MainWindow(QMainWindow):
         ax6.set_xlim([-1, 1])
         ax6.set_ylim([-1, 1])
         ax6.set_zlim([-1, 1])
+        ax6.set_xlabel('AA')
+        ax6.set_ylabel('Aa')
+        ax6.set_zlabel('aa')
         ax6.set_title('Eigenvectors in 3D')
 
         fig.tight_layout(pad=0.2)  # Adjust layout to prevent overlap
