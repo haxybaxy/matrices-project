@@ -58,10 +58,10 @@ class MainWindow(QMainWindow):
         self.central_widget.setLayout(layout)
 
         # Create input fields
-        self.input_a0 = QLineEdit()
-        self.input_b0 = QLineEdit()
-        self.input_c0 = QLineEdit()
-        self.input_gen = QLineEdit()
+        self.input_a0 = QLineEdit('0.5')
+        self.input_b0 = QLineEdit('0.3')
+        self.input_c0 = QLineEdit('0.2')
+        self.input_gen = QLineEdit('10')
         layout.addWidget(QLabel("Enter initial frequency of genotype AA:"))
         layout.addWidget(self.input_a0)
         layout.addWidget(QLabel("Enter initial frequency of genotype Aa:"))
@@ -70,6 +70,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.input_c0)
         layout.addWidget(QLabel("Enter Generation for which you wanted to count:"))
         layout.addWidget(self.input_gen)
+
+
 
         # Dropdown for genotype pair choices
         self.combos = [QComboBox() for _ in range(3)]
