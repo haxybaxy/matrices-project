@@ -180,11 +180,12 @@ class MainWindow(QMainWindow):
         ax3.set_title('Changes Over Generations')
 
         # Transition matrix
-        cax = ax4.imshow(a, cmap='viridis', interpolation='nearest')
+        rotated_a = np.rot90(a, k=1)
+        cax = ax4.imshow(rotated_a, interpolation='nearest', origin = 'lower')
     # Annotate each cell with the numeric value
-        for i in range(a.shape[0]):
-            for j in range(a.shape[1]):
-                ax4.text(j, i, f'{a[i, j]:.2f}', ha='center', va='center', color='white')
+        for i in range(rotated_a.shape[0]):
+            for j in range(rotated_a.shape[1]):
+                ax4.text(j, i, f'{rotated_a[i, j]:.2f}', ha='center', va='center', color='white')
         ax4.set_title('Transition Matrix')
 
 
